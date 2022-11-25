@@ -101,6 +101,7 @@ export function apply(ctx: Context, config: Config) {
     .option('scale', '-c <scale:number>')
     .option('noise', '-n <noise:number>', { hidden: restricted })
     .option('strength', '-N <strength:number>', { hidden: restricted })
+    .option('hiresfix', '-H', { hidden: () => config.type !== 'sd-webui' })
     .option('undesired', '-u <undesired>')
     .option('noTranslator', '-T', { hidden: () => !ctx.translator || !config.translator })
     .action(async ({ session, options }, input) => {
@@ -251,6 +252,7 @@ export function apply(ctx: Context, config: Config) {
         return {
           sampler_index: sampler.sd[options.sampler],
           init_images: image && [image.dataUrl], // sd-webui accepts data URLs with base64 encoded image
+          enable_hr: options.hiresfix ?? config.hiresFix ?? false,
           ...project(parameters, {
             prompt: 'prompt',
             batch_size: 'n_samples',

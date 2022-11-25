@@ -109,6 +109,7 @@ export interface Config extends PromptConfig {
   password?: string
   model?: Model
   orient?: Orient
+  hiresFix?: boolean
   sampler?: string
   maxSteps?: number
   maxResolution?: number
@@ -176,6 +177,7 @@ export const Config = Schema.intersect([
     Schema.object({
       type: Schema.const('sd-webui'),
       sampler: sampler.createSchema(sampler.sd),
+      hiresFix: Schema.boolean().description('是否启用高分辨率修复。').default(false),
     }).description('参数设置'),
     Schema.object({
       type: Schema.const('naifu'),
