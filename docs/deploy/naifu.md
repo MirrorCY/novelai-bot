@@ -108,10 +108,3 @@ sudo apt install python3
 ::: tip
 如果你在启动 NAIFU 时指定了访问令牌，别忘了在 `token` 中进行配置。
 :::
-
-## 附录
-
-### NAIFU 下载地址
-
-- [磁力链接](magnet:?xt=urn:btih:4a4b483d4a5840b6e1fee6b0ca1582c979434e4d&dn=naifu&tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce) (原版)
-- [百度网盘](https://pan.baidu.com/s/1AoQgHf5UJuXB2qDtQkOVeQ?pwd=RA00) (提取码：RA00)
