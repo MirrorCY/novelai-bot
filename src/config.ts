@@ -67,6 +67,25 @@ export namespace sampler {
   }
 }
 
+export const upscalers = [
+  // built-in upscalers
+  'None',
+  'Lanczos',
+  'Nearest',
+  // third-party upscalers (might not be available)
+  'LDSR',
+  'ESRGAN_4x',
+  'R-ESRGAN General 4xV3',
+  'R-ESRGAN General WDN 4xV3',
+  'R-ESRGAN AnimeVideo',
+  'R-ESRGAN 4x+',
+  'R-ESRGAN 4x+ Anime6B',
+  'R-ESRGAN 2x+',
+  'ScuNET GAN',
+  'ScuNET PSNR',
+  'SwinIR 4x',
+] as const
+
 export interface Options {
   enhance: boolean
   model: string
@@ -116,8 +135,10 @@ export interface Config extends PromptConfig {
   anatomy?: boolean
   output?: 'minimal' | 'default' | 'verbose'
   allowAnlas?: boolean | number
+  upscaler?: string
   endpoint?: string
   headers?: Dict<string>
+  maxIteration?: number
   maxRetryCount?: number
   requestTimeout?: number
   recallTimeout?: number
@@ -178,6 +199,7 @@ export const Config = Schema.intersect([
       type: Schema.const('sd-webui'),
       sampler: sampler.createSchema(sampler.sd),
       hiresFix: Schema.boolean().description('是否启用高分辨率修复。').default(false),
+      upscaler: Schema.union(upscalers).description('默认的放大算法。').default('Lanczos'),
     }).description('参数设置'),
     Schema.object({
       type: Schema.const('naifu'),
@@ -203,6 +225,7 @@ export const Config = Schema.intersect([
       Schema.const('default').description('发送图片和关键信息'),
       Schema.const('verbose').description('发送全部信息'),
     ]).description('输出方式。').default('default'),
+    maxIteration: Schema.natural().description('允许的最大绘制次数。').default(1),
     maxRetryCount: Schema.natural().description('连接失败时最大的重试次数。').default(3),
     requestTimeout: Schema.number().role('time').description('当请求超过这个时间时会中止并提示超时。').default(Time.minute),
     recallTimeout: Schema.number().role('time').description('图片发送后自动撤回的时间 (设置为 0 以禁用此功能)。').default(0),
