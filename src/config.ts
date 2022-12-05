@@ -131,6 +131,7 @@ interface ParamConfig {
   textSteps?: number
   imageSteps?: number
   maxSteps?: number
+  hiresFix?: boolean
 }
 
 export interface Config extends PromptConfig, ParamConfig {
