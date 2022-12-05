@@ -55,7 +55,6 @@ export function apply(ctx: Context, config: Config) {
   const thirdParty = () => !['login', 'token'].includes(config.type)
 
   const restricted = (session: Session<'authority'>) => {
-    if (thirdParty()) return false
     if (typeof config.allowAnlas === 'boolean') {
       return !config.allowAnlas
     } else {
@@ -94,7 +93,7 @@ export function apply(ctx: Context, config: Config) {
     .option('enhance', '-e', { hidden: restricted })
     .option('model', '-m <model>', { type: models, hidden: thirdParty })
     .option('resolution', '-r <resolution>', { type: resolution })
-    .option('override', '-O')
+    .option('override', '-O', { hidden: restricted })
     .option('sampler', '-s <sampler>')
     .option('seed', '-x <seed:number>')
     .option('steps', '-t <step>', { type: step, hidden: restricted })
@@ -104,12 +103,12 @@ export function apply(ctx: Context, config: Config) {
     .option('hiresfix', '-H', { hidden: () => config.type !== 'sd-webui' })
     .option('undesired', '-u <undesired>')
     .option('noTranslator', '-T', { hidden: () => !ctx.translator || !config.translator })
-    .option('iterations', '-i <iterations:posint>', { fallback: 1, hidden: () => config.maxIteration <= 1 })
+    .option('iterations', '-i <iterations:posint>', { fallback: 1, hidden: () => config.maxIterations <= 1 })
     .action(async ({ session, options }, input) => {
       if (!input?.trim()) return session.execute('help novelai')
 
-      if (options.iterations && options.iterations > config.maxIteration) {
-        return session.text('.exceed-max-iteration', [config.maxIteration])
+      if (options.iterations && options.iterations > config.maxIterations) {
+        return session.text('.exceed-max-iteration', [config.maxIterations])
       }
 
       let imgUrl: string, image: ImageData
@@ -131,6 +130,9 @@ export function apply(ctx: Context, config: Config) {
       } else {
         delete options.enhance
         delete options.steps
+        delete options.noise
+        delete options.strength
+        delete options.override
       }
 
       if (config.translator && ctx.translator && !options.noTranslator) {
@@ -168,6 +170,8 @@ export function apply(ctx: Context, config: Config) {
         // 2: none
         ucPreset: 2,
         qualityToggle: false,
+        scale: options.scale ?? 11,
+        steps: options.steps ?? (imgUrl ? config.imageSteps : config.textSteps),
       }
 
       if (imgUrl) {
@@ -181,10 +185,6 @@ export function apply(ctx: Context, config: Config) {
           return session.text('.download-error')
         }
 
-        Object.assign(parameters, {
-          scale: options.scale ?? 11,
-          steps: options.steps ?? 50,
-        })
         if (options.enhance) {
           const size = getImageSize(image.buffer)
           if (size.width + size.height !== 1280) {
@@ -206,12 +206,12 @@ export function apply(ctx: Context, config: Config) {
           })
         }
       } else {
-        options.resolution ||= orientMap[config.orient]
+        options.resolution ||= typeof config.resolution === 'string'
+          ? orientMap[config.resolution]
+          : config.resolution
         Object.assign(parameters, {
           height: options.resolution.height,
           width: options.resolution.width,
-          scale: options.scale ?? 11,
-          steps: options.steps ?? 28,
         })
       }
 
@@ -366,6 +366,7 @@ export function apply(ctx: Context, config: Config) {
     })
 
   ctx.accept(['model', 'orient', 'sampler'], (config) => {
+    cmd._options.scale.fallback = config.scale
     cmd._options.model.fallback = config.model
     cmd._options.sampler.fallback = config.sampler
     cmd._options.sampler.type = Object.keys(config.type === 'sd-webui' ? sampler.sd : sampler.nai)
@@ -404,7 +405,7 @@ export function apply(ctx: Context, config: Config) {
 
       const data: StableDiffusionWebUI.ExtraSingleImageRequest = {
         image: image.dataUrl,
-        resize_mode: !!options.resolution ? 1 : 0,
+        resize_mode: options.resolution ? 1 : 0,
         show_extras_results: true,
         upscaling_resize: options.scale,
         upscaling_resize_h: options.resolution?.height,
