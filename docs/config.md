@@ -64,13 +64,6 @@ API 服务器地址。如果你搭建了私服，可以将此项设置为你的�
 
 默认的生成模型。
 
-### orient
-
-- 类型：`'portrait' | 'square' | 'landscape'`
-- 默认值：`'portrait'`
-
-默认的图片方向。
-
 ### sampler
 
 - 类型：`'k_euler_ancestral' | 'k_euler' | 'k_lms' | 'plms' | 'ddim'`
@@ -78,17 +71,47 @@ API 服务器地址。如果你搭建了私服，可以将此项设置为你的�
 
 默认的采样器。
 
+### scale
+
+- 类型：`number`
+- 默认值：`11`
+
+默认对输入的服从度。
+
+### textSteps
+
+- 类型：`number`
+- 默认值：`28`
+
+文本生图时默认的迭代步数。
+
+### imageSteps
+
+- 类型：`number`
+- 默认值：`50`
+
+以图生图时默认的迭代步数。
+
 ### maxSteps
 
 - 类型：`number`
+- 默认值：`64`
 
-选项 `--steps` 的最大值。
+允许的最大迭代步数。
+
+### resolution
+
+- 类型：`'portrait' | 'square' | 'landscape' | { width: number, height: number }`
+- 默认值：`'portrait'`
+
+默认生成的图片尺寸。
 
 ### maxResolution
 
 - 类型：`number`
+- 默认值：`1024`
 
-选项 `--resolution` 中边长的最大值。
+允许生成的宽高最大值。
 
 ## 输入设置
 
@@ -116,7 +139,18 @@ API 服务器地址。如果你搭建了私服，可以将此项设置为你的�
 - 类型：`string`
 - 默认值：`''`
 
-违禁词列表。含有违禁词的请求将被拒绝。
+违禁词列表。请求中的违禁词将会被自动删除。
+
+违禁词语法与关键词类似，使用逗号隔开英文单词。由于它只用于过滤输入，因此不接受影响因子和要素混合等高级语法。默认情况下，每个违禁词均采用模糊匹配，即只要输入的某个关键词中包含任何一个违禁词作为子串，就会被自动删除。如果要使用精确匹配，可以在词尾加上 `!`。例如 `sex!` 仅会过滤 `sex toys` 而不过滤 `sexy girl`。
+
+默认情况下本插件不设违禁词。对于想要禁用 nsfw 内容的用户，下面的违禁词表可供参考：
+
+```text
+guro, nipple, anal, anus, masturbation, sex!, rape, fuck,
+dick, testis, nude, nake, cum, nudity, virgina, penis, nsfw,
+topless, ass, bdsm, footjob, handjob, fellatio, deepthroat,
+cum, ejaculation, bukkake, orgasm, pussy, bloody
+```
 
 ### placement
 
@@ -170,10 +204,19 @@ API 服务器地址。如果你搭建了私服，可以将此项设置为你的�
 
 ### allowAnlas
 
-- 类型：`boolean`
+- 类型：`boolean | number`
 - 默认值：`true`
 
-是否允许使用点数。禁用后部分功能 (如图片增强和步数设置) 将无法使用。
+是否启用高级功能。高级功能包括：
+
+- 以图生图相关功能
+- `-r, --resolution` 选项中，手动指定具体宽高
+- `-O, --override` 选项
+- `-t, --steps` 选项
+- `-n, --noise` 选项
+- `-N, --strength` 选项
+
+当设置为数字时，表示使用上述功能所需的最低权限等级。
 
 ### requestTimeout
 
@@ -182,6 +225,13 @@ API 服务器地址。如果你搭建了私服，可以将此项设置为你的�
 
 当请求超过这个时间时会中止并提示超时。
 
+### maxRetryCount
+
+- 类型：`number`
+- 默认值：`3`
+
+连接失败时最大的重试次数。
+
 <!-- ### recallTimeout
 
 - 类型：`number`
@@ -189,7 +239,7 @@ API 服务器地址。如果你搭建了私服，可以将此项设置为你的�
 
 图片发送后自动撤回的时间 (设置为 `0` 禁用此功能)。 -->
 
-### maxIteration
+### maxIterations
 
 - 类型：`number`
 - 默认值：`1`

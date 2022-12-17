@@ -247,11 +247,6 @@ export const Config = Schema.intersect([
           'referer': 'https://novelai.net/',
           'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36',
         }),
-        allowAnlas: Schema.union([
-          Schema.const(true).description('允许'),
-          Schema.const(false).description('禁止'),
-          Schema.natural().description('权限等级').default(1),
-        ]).default(true).description('是否启用高级功能 (例如图片增强和手动设置某些参数)。'),
       }),
     ]),
     Schema.object({
@@ -299,10 +294,10 @@ export const Config = Schema.intersect([
   ] as const),
 
   Schema.object({
-    scale: Schema.natural().description('默认对输入的服从度。').default(11),
+    scale: Schema.number().description('默认对输入的服从度。').default(11),
     textSteps: Schema.natural().description('文本生图时默认的迭代步数。').default(28),
     imageSteps: Schema.natural().description('以图生图时默认的迭代步数。').default(50),
-    maxSteps: Schema.natural().description('允许的最大迭代步数。').default(0),
+    maxSteps: Schema.natural().description('允许的最大迭代步数。').default(64),
     resolution: Schema.union([
       Schema.const('portrait' as const).description('肖像 (768x512)'),
       Schema.const('landscape' as const).description('风景 (512x768)'),
@@ -312,7 +307,7 @@ export const Config = Schema.intersect([
         height: Schema.natural().description('图片高度。').default(640),
       }).description('自定义'),
     ] as const).description('默认生成的图片尺寸。').default('portrait'),
-    maxResolution: Schema.natural().description('允许生成的宽度和高度最大值。').default(0),
+    maxResolution: Schema.natural().description('允许生成的宽高最大值。').default(1024),
   }),
 
   PromptConfig,
@@ -324,6 +319,11 @@ export const Config = Schema.intersect([
         Schema.const('default').description('发送图片和关键信息'),
         Schema.const('verbose').description('发送全部信息'),
       ]).description('输出方式。').default('default'),
+      allowAnlas: Schema.union([
+        Schema.const(true).description('允许'),
+        Schema.const(false).description('禁止'),
+        Schema.natural().description('权限等级').default(1),
+      ]).default(true).description('是否启用高级功能 (例如图片增强和手动设置某些参数)。'),
       maxIterations: Schema.natural().description('允许的最大绘制次数。').default(1),
       maxRetryCount: Schema.natural().description('连接失败时最大的重试次数。').default(3),
       requestTimeout: Schema.number().role('time').description('当请求超过这个时间时会中止并提示超时。').default(Time.minute),
@@ -348,6 +348,7 @@ export function parseForbidden(input: string) {
   return input.trim()
     .toLowerCase()
     .replace(/，/g, ',')
+    .replace(/！/g, '!')
     .split(/(?:,\s*|\s*\n\s*)/g)
     .filter(Boolean)
     .map<Forbidden>((pattern: string) => {
