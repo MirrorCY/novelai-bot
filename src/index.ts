@@ -426,10 +426,21 @@ export function apply(ctx: Context, config: Config) {
     })
 
   ctx.accept(['model', 'orient', 'sampler'], (config) => {
+    const getSamplers = () => {
+      switch (config.type) {
+        case 'sd-webui':
+          return sampler.sd
+        case 'stable-horde':
+          return sampler.horde
+        default:
+          return sampler.nai
+      }
+    }
+
     cmd._options.scale.fallback = config.scale
     cmd._options.model.fallback = config.model
     cmd._options.sampler.fallback = config.sampler
-    cmd._options.sampler.type = Object.keys(config.type === 'sd-webui' ? sampler.sd : sampler.nai)
+    cmd._options.sampler.type = Object.keys(getSamplers())
   }, { immediate: true })
 
   const subcmd = ctx.intersect(() => config.type === 'sd-webui')
